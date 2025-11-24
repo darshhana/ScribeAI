@@ -102,6 +102,28 @@ These steps map 1‑to‑1 with the required 3–5 minute Loom/YouTube walkthrou
 
 ## Architecture Overview
 
+### Architecture in Simple Words
+
+- **Next.js app (frontend + API)**
+  - Renders the UI: `/sessions` (recorder + history) and `/sessions/[id]` (details).
+  - Uses Better Auth for login and Prisma to read/write data in Postgres.
+
+- **Socket.io server (Node)**
+  - Lives in `server/index.ts`.
+  - Listens for events from the browser: `session:start`, `session:audioChunk`, `session:pause`, `session:resume`, `session:stop`.
+  - Talks to Gemini for transcription/summary and to Postgres for saving data.
+
+- **Postgres database (via Prisma)**
+  - `Session` stores high‑level info (user, source, status, timestamps).
+  - `TranscriptChunk` stores all small pieces of text for each session.
+  - `Summary` stores the final AI summary for a session.
+
+- **Flow of a recording**
+  1. Browser calls `session:start` → server creates a `Session` row and sets status to `RECORDING`.
+  2. Every few seconds, the browser sends `session:audioChunk` → server calls Gemini to get text, saves a `TranscriptChunk`, and pushes live text back to the browser.
+  3. When you click **Stop & summarize**, the browser sends `session:stop` → server loads all chunks, asks Gemini for a summary, saves a `Summary`, marks the session `COMPLETED`, and notifies the UI.
+  4. Later, the Next.js pages just read data from Postgres and display transcript + summary.
+
 ### High-Level Components
 
 - **Next.js App Router**
