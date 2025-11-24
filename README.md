@@ -5,6 +5,9 @@ It captures audio from either your **microphone** or a **shared meeting/tab (Goo
 
 Core flow: **Authenticate → Start session (mic/tab) → Live transcript via Socket.io → Pause/Resume → Stop & summarize → Browse/export history.**
 
+**Video walkthrough:** You can watch a short end‑to‑end demo of ScribeAI here:  
+[ScribeAI – Demo Video](https://www.canva.com/design/DAG5oCpw5WY/bAX-79WVouenXDdLJ3J4wA/watch?utm_content=DAG5oCpw5WY&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h8a9091b962)
+
 ---
 
 ## Tech Stack
