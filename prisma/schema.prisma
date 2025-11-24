@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String?
+  passwordHash String
+
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id          String              @id @default(uuid())
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  title       String?
+  sourceType  SessionSourceType
+  status      SessionStatus       @default(RECORDING)
+  startedAt   DateTime            @default(now())
+  completedAt DateTime?
+
+  transcriptChunks TranscriptChunk[]
+  summary          Summary?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TranscriptChunk {
+  id        String   @id @default(uuid())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId String
+
+  /** Sequential index for ordering within a session */
+  index Int
+
+  /** Raw transcript text for this chunk */
+  text String
+
+  /** Milliseconds from session start */
+  startMs Int
+  endMs   Int
+
+  createdAt DateTime @default(now())
+}
+
+model Summary {
+  id        String  @id @default(uuid())
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId String  @unique
+
+  /** Full summarized text */
+  content String
+
+  /** Optional structured fields, stored as JSON stringified text for portability */
+  keyPoints   String? // JSON array of strings
+  actionItems String? // JSON array of strings
+  decisions   String? // JSON array of strings
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SessionSourceType {
+  MIC
+  TAB
+}
+
+enum SessionStatus {
+  RECORDING
+  PAUSED
+  PROCESSING
+  COMPLETED
+  ERROR
+}
